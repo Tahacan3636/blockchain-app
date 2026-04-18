@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Blockchain Tabanlı Seçim - Türkiye 2025</title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Styles -->
+    <style>
+        :root {
+            --color-blue: #001e62;
+            --color-red: #ef4444;
+            --transition-fast: 0.3s ease;
+            --transition-medium: 0.4s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Progress Bar Animation */
+        .progress-animate {
+            animation: progressGrow 1.5s ease-out forwards;
+        }
+
+        @keyframes progressGrow {
+            from { width: 0%; }
+        }
+
+        /* Dashed Line */
+        .dashed-line {
+            background-image: linear-gradient(to bottom, white 50%, transparent 50%);
+            background-size: 4px 12px;
+        }
+
+        /* Candidate Card */
+        .candidate-card {
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .candidate-card:hover {
+            transform: scale(1.05);
+        }
+
+        .candidate-card.selected {
+            transform: scale(1.05);
+        }
+
+        .candidate-card.selected.blue-candidate {
+            box-shadow: 0 0 0 4px #001e62, 0 0 20px rgba(0, 30, 98, 0.5);
+        }
+
+        .candidate-card.selected.red-candidate {
+            box-shadow: 0 0 0 4px #c8102e, 0 0 20px rgba(200, 16, 46, 0.5);
+        }
+
+        /* Panel Transitions */
+        .panel-transition {
+            transition: opacity var(--transition-medium), transform var(--transition-medium);
+        }
+
+        .panel-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            position: absolute;
+            visibility: hidden;
+        }
+
+        .panel-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Chain Block Card */
+        .chain-block {
+            min-width: 220px;
+            transition: all 150ms ease-out;
+        }
+
+        .chain-block:not(.selected):hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .chain-block.selected {
+            border-color: black;
+            background-color: rgb(250 250 250);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* CNN Election Style — Keskin Hatlar */
+        .city-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .city-card-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #1f2937;
+        }
+
+        .candidate-row {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        /* Önde olan — gradient arka plan, beyaz yazı, belirgin sol border */
+        .candidate-row.lead-blue {
+            background: linear-gradient(135deg, #000c3d 0%, #001e62 100%);
+            border-left: 5px solid #000820;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .candidate-row.lead-blue .cr-name,
+        .candidate-row.lead-blue .cr-party,
+        .candidate-row.lead-blue .cr-pct,
+        .candidate-row.lead-blue .cr-votes,
+        .candidate-row.lead-blue .cr-ahead { color: #fff; }
+
+        .candidate-row.lead-red {
+            background: linear-gradient(135deg, #a00d24 0%, #c8102e 100%);
+            border-left: 5px solid #7f0a1c;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .candidate-row.lead-red .cr-name,
+        .candidate-row.lead-red .cr-party,
+        .candidate-row.lead-red .cr-pct,
+        .candidate-row.lead-red .cr-votes,
+        .candidate-row.lead-red .cr-ahead { color: #fff; }
+
+        /* Geride olan — çok soluk pastel, ince border, koyu yazı */
+        .candidate-row.trail-blue {
+            background-color: #eef1f8;
+            border-left: 3px solid #6678a8;
+        }
+        .candidate-row.trail-blue .cr-name { color: #001e62; }
+        .candidate-row.trail-blue .cr-party { color: #2a4080; }
+        .candidate-row.trail-blue .cr-pct { color: #001e62; }
+        .candidate-row.trail-blue .cr-votes { color: #001e62; }
+
+        .candidate-row.trail-red {
+            background-color: #fef2f2;
+            border-left: 3px solid #fca5a5;
+        }
+        .candidate-row.trail-red .cr-name { color: #7f1d1d; }
+        .candidate-row.trail-red .cr-party { color: #ef4444; }
+        .candidate-row.trail-red .cr-pct { color: #991b1b; }
+        .candidate-row.trail-red .cr-votes { color: #7f1d1d; }
+
+        /* Beraberlik — nötr gri, koyu yazı */
+        .candidate-row.tied {
+            background-color: #f3f4f6;
+            border-left: 3px solid #9ca3af;
+        }
+
+        .featured-city-card {
+            transition: all 0.2s ease-in-out;
+            cursor: default;
+        }
+
+        .featured-city-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: #9ca3af;
+        }
+
+        .city-fade-in {
+            animation: cityFadeIn 0.2s ease-out;
+        }
+
+        @keyframes cityFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Background Logo */
+        .bg-logo {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-gray-50 font-inter">
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="relative h-16 flex">
+        <div class="flex-1" style="background-color: #001e62;"></div>
+        <div class="flex-1" style="background-color: #c8102e;"></div>
+
+        <div class="absolute top-5 right-0 transform -translate-x-1/4 text-xs md:text-sm font-medium text-white tracking-wide" id="dateTime"></div>
+
+        <div class="absolute inset-0 flex items-center justify-center">
+            <button
+                id="navbarButton"
+                class="bg-black text-white px-10 py-3 rounded-full font-bold text-lg tracking-wider flex items-center gap-2 hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 select-none"
+            >
+                <i class="w-5 h-5" data-lucide="vote"></i>
+                <span id="navbarButtonText">VOTE</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== DASHBOARD PANEL ==================== -->
+    <div id="dashboardPanel" class="panel-transition panel-visible flex-1">
+        <main class="container mx-auto px-4 py-8 relative">
+            <div class="absolute inset-0 pointer-events-none opacity-10 z-0 bg-logo" style="background-image: url('images/election-logo-2.png');"></div>
+
+            <div class="relative z-10">
+                <h1 id="electionTitle" class="text-3xl md:text-4xl font-black text-center text-gray-900 mb-12 tracking-tight">
+                    PRESIDENTIAL ELECTION — LIVE RESULTS
+                </h1>
+
+                <!-- Candidates Section -->
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-4 mb-8 max-w-5xl mx-auto">
+                    <!-- Left Candidate: Fenerbahçe -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center shadow-lg border-4 overflow-hidden" style="background-color: #001e62; border-color: #1a3a7a;">
+                            <img src="images/fenerbahce.png" alt="Fenerbahçe" class="w-full h-full object-contain p-1"/>
+                        </div>
+                        <div class="text-center sm:text-left">
+                            <h2 class="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-900">
+                                <span id="leftCandidateName">FENERBAHÇE</span>
+                                <span id="leftWinnerBadge" class="hidden w-6 h-6 rounded-full flex items-center justify-center" style="background-color: #001e62;">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                            </h2>
+                            <p id="leftPartyName" class="text-lg font-semibold" style="color: #001e62;">Fenerbahçe SK</p>
+                            <p id="leftVotes" class="text-gray-600 font-medium">0 votes</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Candidate: Galatasaray -->
+                    <div class="flex flex-col sm:flex-row-reverse items-center gap-4">
+                        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center shadow-lg border-4 overflow-hidden" style="background-color: #c8102e; border-color: #e84855;">
+                            <img src="images/galatasaray.png" alt="Galatasaray" class="w-full h-full object-contain p-1"/>
+                        </div>
+                        <div class="text-center sm:text-right">
+                            <h2 class="flex items-center gap-2 justify-end text-xl md:text-2xl font-bold text-gray-900">
+                                <span id="rightWinnerBadge" class="hidden w-6 h-6 rounded-full bg-red-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                                <span id="rightCandidateName">GALATASARAY</span>
+                            </h2>
+                            <p id="rightPartyName" class="text-lg font-semibold text-red-600">Galatasaray SK</p>
+                            <p id="rightVotes" class="text-gray-600 font-medium">0 votes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Section -->
+                <div class="max-w-5xl mx-auto mb-12">
+                    <div class="relative mb-2">
+                        <div class="absolute left-1/2 transform -translate-x-1/2 -top-8 flex flex-col items-center z-20">
+                            <span class="bg-gray-800 text-white text-xs md:text-sm px-3 py-1 rounded-full font-semibold whitespace-nowrap shadow-lg">
+                                50% + 1 to win
+                            </span>
+                            <div class="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-gray-800"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative h-14 md:h-16 rounded-lg overflow-hidden shadow-lg border-2 border-gray-300 mt-8 bg-gray-200">
+                        <div id="leftProgressBar" class="absolute left-0 top-0 h-full flex items-center justify-start pl-4 progress-animate" style="width: 50%; background: linear-gradient(to right, #000c3d, #001e62);">
+                            <span id="leftPercentage" class="text-white font-black text-xl md:text-2xl drop-shadow-lg">50%</span>
+                        </div>
+                        <div id="rightProgressBar" class="absolute right-0 top-0 h-full flex items-center justify-end pr-4 progress-animate" style="width: 50%; background: linear-gradient(to left, #a00d24, #c8102e);">
+                            <span id="rightPercentageBar" class="text-white font-black text-xl md:text-2xl drop-shadow-lg">50%</span>
+                        </div>
+                        <div class="absolute left-1/2 top-0 h-full w-1 transform -translate-x-1/2 z-10 dashed-line opacity-80"></div>
+                    </div>
+
+                    <div class="flex justify-center mt-4 gap-3 flex-wrap">
+                        <div class="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span id="totalVotes" class="text-gray-700 font-semibold">Total Votes: 0</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
+                                <rect x="9" y="3" width="6" height="4" rx="1"></rect>
+                                <path d="M9 14l2 2 4-4"></path>
+                            </svg>
+                            <span id="turnoutRate" class="text-gray-700 font-semibold">Turnout: —</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turkey Election Map -->
+                <div id="turkeyMapContainer" class="max-w-5xl mx-auto mb-12 bg-white rounded-2xl shadow-lg border border-gray-200 p-6"></div>
+
+                <!-- ═══ İL BAZLI SEÇİM SONUÇLARI ═══ -->
+                <div id="cityResultsSection" class="max-w-5xl mx-auto mb-12 mt-8">
+                    <!-- Başlık — çift çizgi -->
+                    <div class="border-t-2 border-b-2 border-gray-800 py-3 mb-8">
+                        <h2 class="font-extrabold text-xl md:text-2xl uppercase tracking-wider text-gray-900 text-center">
+                            İL BAZLI SEÇİM SONUÇLARI
+                        </h2>
+                    </div>
+
+                    <!-- 4 Büyük Şehir: 2x2 Grid -->
+                    <div id="featuredCities" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
+
+                    <!-- Dropdown -->
+                    <div class="mb-6">
+                        <select id="cityDropdown" class="w-full border-2 border-gray-300 rounded-sm px-4 py-3 text-base font-medium text-gray-700 bg-white focus:outline-none focus:border-gray-800 transition-colors cursor-pointer">
+                            <option value="">Diğer illerin sonuçlarını görüntüle...</option>
+                        </select>
+                    </div>
+
+                    <!-- Seçilen İl Kartı -->
+                    <div id="selectedCityCard"></div>
+                </div>
+                <!-- ═══ İL BAZLI SONUÇLAR SONU ═══ -->
+
+                <!-- Footer Title -->
+                <div class="text-center mt-16">
+                    <h2 id="electionSubtitle" class="text-2xl md:text-3xl font-black tracking-widest text-gray-400">
+                        BLOKCHAIN BASED ELECTION
+                    </h2>
+                    <p id="electionInfo" class="text-lg font-bold tracking-[0.3em] text-gray-300">
+                        TÜRKİYE 2025
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== VOTING PANEL ==================== -->
+    <div id="votingPanel" class="panel-transition panel-hidden flex-1 bg-white-400">
+        <main class="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 pointer-events-none opacity-10 z-0 bg-logo" style="background-image: url('images/election-logo-2.png'); background-position: left;"></div>
+            <div class="absolute inset-0 pointer-events-none opacity-10 z-0 bg-logo" style="background-image: url('images/election-logo-2.png'); background-position: right;"></div>
+
+            <div class="relative z-10 w-full max-w-md">
+                <div class="glass-card rounded-3xl shadow-2xl p-8 border border-gray-200">
+                    <!-- Logo -->
+                    <div class="flex justify-center -mt-6 mb-4">
+                        <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white flex items-center justify-center shadow-lg border-4 border-gray-200 overflow-hidden">
+                            <img src="images/election-logo-2.png" class="w-full h-full object-contain p-2"/>
+                        </div>
+                    </div>
+
+                    <!-- Citizenship Input -->
+                    <div class="space-y-4 mb-11">
+                        <input
+                            type="text"
+                            id="citizenshipNumber"
+                            inputmode="numeric"
+                            maxlength="9"
+                            placeholder="Student Number (9 digits)"
+                            class="w-full bg-gray-200 text-black px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        />
+                    </div>
+
+                    <!-- Candidate Cards -->
+                    <div class="flex justify-center gap-6 mb-8">
+                        <!-- Left Candidate Card: Fenerbahçe -->
+                       <div id="voteCardLeft" onclick="App.selectCandidate('left')" class="candidate-card blue-candidate bg-gray-200 rounded-2xl p-4 flex flex-col items-center w-40 border-2 border-transparent hover:border-blue-300">
+                            <div class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg mb-3 overflow-hidden" style="background-color: #001e62;">
+                                <img src="images/fenerbahce.png" alt="Fenerbahçe" class="w-full h-full object-contain p-1"/>
+                            </div>
+                            <h3 id="voteLeftName" class="font-bold text-gray-900 text-center">FENERBAHÇE</h3>
+                            <p id="voteLeftParty" class="font-semibold text-sm" style="color: #001e62;">Fenerbahçe SK</p>
+                            <div id="checkLeft" class="hidden mt-2">
+                                <svg class="w-6 h-6" style="color: #001e62;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Right Candidate Card: Galatasaray -->
+                        <div id="voteCardRight" onclick="App.selectCandidate('right')" class="candidate-card red-candidate bg-gray-200 rounded-2xl p-4 flex flex-col items-center w-40 border-2 border-transparent hover:border-red-300">
+                            <div class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg mb-3 overflow-hidden" style="background-color: #c8102e;">
+                                <img src="images/galatasaray.png" alt="Galatasaray" class="w-full h-full object-contain p-1"/>
+                            </div>
+                            <h3 id="voteRightName" class="font-bold text-gray-900 text-center">GALATASARAY</h3>
+                            <p id="voteRightParty" class="text-red-600 font-semibold text-sm">Galatasaray SK</p>
+                            <div id="checkRight" class="hidden mt-2">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vote Button -->
+                    <button
+                        id="submitVoteBtn"
+                        onclick="App.submitVote()"
+                        disabled
+                        class="w-full bg-black text-white py-4 rounded-full font-bold text-xl tracking-wider hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                        VOTE
+                    </button>
+
+                    <!-- Message Area -->
+                    <div id="voteMessage" class="text-center mt-4 text-sm font-medium hidden"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== BLOCKCHAIN MODAL ==================== -->
+    <button id="openChainBtn" onclick="ChainUI.openModal()" class="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-black text-white px-5 py-3 shadow-lg hover:shadow-xl transition-all">
+        <span class="w-5 h-5" data-lucide="link-2"></span>
+        <span class="font-bold tracking-wide text-sm">CHAIN</span>
+    </button>
+
+    <div id="chainModal" class="hidden fixed inset-0 z-50 bg-black/60 p-4 md:p-10">
+        <div class="mx-auto max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <div>
+                    <h2 class="text-xl font-extrabold tracking-wide">Blockchain Chain</h2>
+                    <p id="chainStatus" class="text-sm text-gray-600 mt-1">Loading...</p>
+                </div>
+                <button onclick="ChainUI.closeModal()" class="rounded-full px-4 py-2 bg-gray-100 hover:bg-gray-200 font-bold">Close</button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="flex-1 overflow-y-auto">
+                <!-- Block Detail -->
+                <div class="p-6 border-b">
+                    <h3 class="font-extrabold tracking-wide mb-3">Current Block: <span id="selectedBlockTitle">-</span></h3>
+                    <pre id="chainDetail" class="text-xs bg-gray-50 border rounded-2xl p-4 overflow-auto max-h-[280px]"></pre>
+                </div>
+
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-4">Blocks are linked via the <b>previousHash</b> field. Clicking a block displays its metadata above.</p>
+
+                    <!-- Chain Blocks -->
+                    <div id="chainBlocks" class="flex items-stretch gap-4 overflow-x-auto pb-4"></div>
+
+                    <!-- Hash Lookup -->
+                    <div class="mt-4 p-4 bg-gray-50 border rounded-2xl">
+                        <h3 class="font-extrabold tracking-wide mb-2">Hash Lookup</h3>
+                        <p class="text-sm text-gray-600 mb-3">Provide a <b>block hash</b> to verify the block's position in the chain.</p>
+                        <div class="flex gap-2">
+                            <input id="hashQueryInput" type="text" placeholder="Example: 9f2a... (block's hash)" class="flex-1 px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-black/20 text-sm"/>
+                            <button onclick="ChainUI.queryHash()" class="px-4 py-2 rounded-xl bg-black text-white font-extrabold text-sm hover:opacity-90">Lookup</button>
+                        </div>
+                        <div id="hashQueryResult" class="mt-3 text-sm"></div>
+                    </div>
+
+                    <!-- TxID Lookup -->
+                    <div class="mt-3 p-4 bg-white border rounded-2xl">
+                        <h3 class="font-extrabold tracking-wide mb-2">TxID Lookup</h3>
+                        <p class="text-sm text-gray-600 mb-3">Enter a <b>Transaction ID (TxID)</b> to verify the transaction exists on the chain.</p>
+                        <div class="flex gap-2">
+                            <input id="txQueryInput" type="text" placeholder="Example: 2c1f... (TxID)" class="flex-1 px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-black/20 text-sm"/>
+                            <button onclick="ChainUI.queryTxId()" class="px-4 py-2 rounded-xl bg-black text-white font-extrabold text-sm hover:opacity-90">Lookup</button>
+                        </div>
+                        <div id="txQueryResult" class="mt-3 text-sm"></div>
+                        <p class="mt-2 text-xs text-gray-500">Note: A TxID query does not reveal the voter's identity.</p>
+                    </div>
+
+                    <!-- Tamper Demo (Devre Disi) -->
+                    <div class="mt-3 p-4 bg-gray-50 border rounded-2xl">
+                        <h3 class="font-extrabold tracking-wide mb-2">Demo: Chain Tampering</h3>
+                        <p class="text-sm text-gray-600">
+                            Blockchain sunucu tarafinda (PostgreSQL) tutulmaktadir.
+                            Client-side tamper demo bu modda devre disidir.
+                            Veri butunlugu sunucu tarafinda <code class="bg-gray-200 px-1 rounded">GET /api/chain/verify</code> endpoint'i ile dogrulanir.
+                        </p>
+                    </div>
+
+                    <!-- Export -->
+                    <div class="mt-3 p-4 bg-white border rounded-2xl">
+                        <h3 class="font-extrabold tracking-wide mb-2">Audit & Verification: Export</h3>
+                        <p class="text-sm text-gray-600 mb-3">Export the blockchain for external verification.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="ChainUI.exportChain()" class="px-4 py-2 rounded-xl bg-black text-white font-extrabold text-sm hover:opacity-90 transition">Export (JSON)</button>
+                            <button disabled class="px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-extrabold text-sm cursor-not-allowed">Import (Disabled)</button>
+                        </div>
+                        <div id="importExportResult" class="mt-3 text-sm"></div>
+                        <p class="mt-2 text-xs text-gray-500">Not: Blockchain sunucu tarafinda tutuldugu icin import devre disidir. Export ile denetim yapilabilir.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ADMIN LOGIN MODAL ==================== -->
+    <div id="adminLoginModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/60" onclick="App.closeAdminLogin()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 text-center">Admin Login</h3>
+            <div class="space-y-3 mb-4">
+                <input type="text" id="adminUsername" placeholder="Username"
+                    class="w-full bg-gray-100 text-black px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"/>
+                <input type="password" id="adminPassword" placeholder="Password"
+                    class="w-full bg-gray-100 text-black px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"/>
+            </div>
+            <div id="adminLoginMessage" class="text-center text-sm font-medium mb-3 hidden"></div>
+            <div class="flex gap-3">
+                <button onclick="App.closeAdminLogin()"
+                    class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button onclick="App.submitAdminLogin()"
+                    class="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-colors font-bold" style="background: linear-gradient(to right, #001e62, #c8102e);">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="mt-auto py-6 bg-gray-100 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">&copy; 2025 Blockchain Secim Sistemi - Tum haklari saklidir.</p>
+            <p class="text-gray-400 text-xs mt-1">Developed by MUHAMMED TAHA CAN &amp; İLHAN SIDAL KARADENİZ</p>
+        </div>
+    </footer>
+
+    <!-- ==================== EXTERNAL SCRIPTS ==================== -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/turkey-map.js"></script>
+
+    <!-- ==================== APPLICATION LOGIC ==================== -->
+    <script>
+    (function() {
+        'use strict';
+
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            TRANSITION_DELAY: 400,
+            SUCCESS_REDIRECT_DELAY: 1500
+        };
+
+        // ==================== CANDIDATE MAPPING ====================
+        const CANDIDATE_MAP = { left: 1, right: 2 };
+        const CANDIDATE_REVERSE = { 1: 'left', 2: 'right' };
+
+        // ==================== CITY DATA ====================
+        const CITIES = {
+            "1":"Adana","2":"Adıyaman","3":"Afyonkarahisar","4":"Ağrı",
+            "5":"Amasya","6":"Ankara","7":"Antalya","8":"Artvin",
+            "9":"Aydın","10":"Balıkesir","11":"Bilecik","12":"Bingöl",
+            "13":"Bitlis","14":"Bolu","15":"Burdur","16":"Bursa",
+            "17":"Çanakkale","18":"Çankırı","19":"Çorum","20":"Denizli",
+            "21":"Diyarbakır","22":"Edirne","23":"Elazığ","24":"Erzincan",
+            "25":"Erzurum","26":"Eskişehir","27":"Gaziantep","28":"Giresun",
+            "29":"Gümüşhane","30":"Hakkari","31":"Hatay","32":"Isparta",
+            "33":"Mersin","34":"İstanbul","35":"İzmir","36":"Kars",
+            "37":"Kastamonu","38":"Kayseri","39":"Kırklareli","40":"Kırşehir",
+            "41":"Kocaeli","42":"Konya","43":"Kütahya","44":"Malatya",
+            "45":"Manisa","46":"Kahramanmaraş","47":"Mardin","48":"Muğla",
+            "49":"Muş","50":"Nevşehir","51":"Niğde","52":"Ordu",
+            "53":"Rize","54":"Sakarya","55":"Samsun","56":"Siirt",
+            "57":"Sinop","58":"Sivas","59":"Tekirdağ","60":"Tokat",
+            "61":"Trabzon","62":"Tunceli","63":"Şanlıurfa","64":"Uşak",
+            "65":"Van","66":"Yozgat","67":"Zonguldak","68":"Aksaray",
+            "69":"Bayburt","70":"Karaman","71":"Kırıkkale","72":"Batman",
+            "73":"Şırnak","74":"Bartın","75":"Ardahan","76":"Iğdır",
+            "77":"Yalova","78":"Karabük","79":"Kilis","80":"Osmaniye",
+            "81":"Düzce"
+        };
+        const FEATURED_PLATES = ['34', '6', '26', '36'];
+
+        // ==================== ELECTION DATA ====================
+        const electionData = {
+            election: {
+                title: "PRESIDENTIAL ELECTION — LIVE RESULTS",
+                year: 2025,
+                country: "TÜRKİYE",
+                subtitle: "BLOKCHAIN BASED ELECTION"
+            },
+            candidates: {
+                left: { name: "FENERBAHÇE", party: "Fenerbahçe SK", votes: 0, color: "blue" },
+                right: { name: "GALATASARAY", party: "Galatasaray SK", votes: 0, color: "red" }
+            },
+            allowedVoters: 0
+        };
+
+        // ==================== STATE ====================
+        let currentPanel = 'dashboard';
+        let selectedCandidate = null;
+        let isVoteMessagePinned = false;
+        let chainCache = [];
+
+        // ==================== UTILITY FUNCTIONS ====================
+        const Utils = {
+            formatVotes: (votes) => votes.toLocaleString('tr-TR'),
+
+            shortHash: (h) => h ? `${h.slice(0, 10)}...${h.slice(-6)}` : '',
+
+            $(id) { return document.getElementById(id); },
+
+            show(el) { el?.classList.remove('hidden'); },
+
+            hide(el) { el?.classList.add('hidden'); },
+
+           /* isValidTC(tc) {
+                if (!/^\d{11}$/.test(tc) || tc[0] === '0') return false;
+
+                const d = tc.split('').map(Number);
+                const oddSum = d[0] + d[2] + d[4] + d[6] + d[8];
+                const evenSum = d[1] + d[3] + d[5] + d[7];
+                const digit10 = ((oddSum * 7) - evenSum) % 10;
+
+                if (digit10 < 0 || d[9] !== digit10) return false;
+
+                const sum10 = d.slice(0, 10).reduce((a, b) => a + b, 0);
+                return d[10] === sum10 % 10;
+            },*/
+
+            validateVoterId(value) {
+                const v = (value || '').trim();
+                if (!v) return { ok: false, reason: 'Please enter your Student Number.' };
+
+                if (!/^\d{9}$/.test(v)) {
+                    return { ok: false, reason: 'Student Number must be exactly 9 digits.' };
+                }
+                return { ok: true, voterId: v };
+            },
+
+            getCandidateLabel(candidateId) {
+                const key = CANDIDATE_REVERSE[candidateId] || candidateId;
+                const c = electionData.candidates[key];
+                return c ? `${c.party} (${c.name})` : candidateId || '-';
+            },
+
+            copyToClipboard: async (text) => {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    return true;
+                }
+            }
+        };
+
+        // ==================== UI MANAGER ====================
+        const UI = {
+            updateDateTime() {
+                const now = new Date();
+                const el = Utils.$('dateTime');
+                if (el) {
+                    el.textContent = now.toLocaleString('tr-TR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                }
+            },
+
+            updateDashboard() {
+                const { election, candidates } = electionData;
+                const total = candidates.left.votes + candidates.right.votes;
+                const leftPct = total > 0 ? ((candidates.left.votes / total) * 100).toFixed(1) : '50.0';
+                const rightPct = total > 0 ? ((candidates.right.votes / total) * 100).toFixed(1) : '50.0';
+
+                Utils.$('electionTitle').textContent = election.title;
+                Utils.$('electionSubtitle').textContent = election.subtitle;
+                Utils.$('electionInfo').textContent = `${election.country} ${election.year}`;
+
+                Utils.$('leftCandidateName').textContent = candidates.left.name;
+                Utils.$('leftPartyName').textContent = candidates.left.party;
+                Utils.$('leftVotes').textContent = `${Utils.formatVotes(candidates.left.votes)} votes`;
+
+                Utils.$('rightCandidateName').textContent = candidates.right.name;
+                Utils.$('rightPartyName').textContent = candidates.right.party;
+                Utils.$('rightVotes').textContent = `${Utils.formatVotes(candidates.right.votes)} votes`;
+
+                Utils.$('leftProgressBar').style.width = `${leftPct}%`;
+                Utils.$('rightProgressBar').style.width = `${rightPct}%`;
+                Utils.$('leftPercentage').textContent = `${leftPct}%`;
+                Utils.$('rightPercentageBar').textContent = `${rightPct}%`;
+
+                Utils.$('totalVotes').textContent = `Total Votes: ${Utils.formatVotes(total)}`;
+
+                // Katilim orani
+                const turnoutEl = Utils.$('turnoutRate');
+                if (turnoutEl) {
+                    const allowed = electionData.allowedVoters;
+                    if (allowed > 0) {
+                        const turnoutPct = ((total / allowed) * 100).toFixed(1);
+                        turnoutEl.textContent = `Turnout: %${turnoutPct}`;
+                    } else {
+                        turnoutEl.textContent = `Turnout: —`;
+                    }
+                }
+
+                const leftBadge = Utils.$('leftWinnerBadge');
+                const rightBadge = Utils.$('rightWinnerBadge');
+
+                Utils.hide(leftBadge);
+                Utils.hide(rightBadge);
+
+                if (candidates.left.votes > candidates.right.votes) {
+                    Utils.show(leftBadge);
+                } else if (candidates.right.votes > candidates.left.votes) {
+                    Utils.show(rightBadge);
+                }
+            },
+
+            updateVotingPanel() {
+                const { candidates } = electionData;
+                Utils.$('voteLeftName').textContent = candidates.left.name;
+                Utils.$('voteLeftParty').textContent = candidates.left.party;
+                Utils.$('voteRightName').textContent = candidates.right.name;
+                Utils.$('voteRightParty').textContent = candidates.right.party;
+            },
+
+            showMessage(text, type = 'info') {
+                const el = Utils.$('voteMessage');
+                isVoteMessagePinned = false;
+                el.textContent = text;
+                el.classList.remove('hidden', 'text-red-600', 'text-green-600', 'text-gray-700');
+                el.classList.add(type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-gray-700');
+            },
+
+            hideMessage() {
+                isVoteMessagePinned = false;
+                Utils.hide(Utils.$('voteMessage'));
+            },
+
+            showTxSuccess(txId, blockIndex) {
+                const el = Utils.$('voteMessage');
+                isVoteMessagePinned = true;
+                el.classList.remove('hidden', 'text-red-600', 'text-gray-700');
+                el.classList.add('text-green-600');
+
+                const shortTx = txId.length > 14 ? `${txId.slice(0, 10)}…${txId.slice(-6)}` : txId;
+
+                el.innerHTML = `
+                    <div class="flex flex-col items-center gap-2">
+                        <div>Vote successfully recorded.</div>
+                        <div class="font-mono text-xs break-all">
+                            <span class="font-semibold">TxID:</span> <span title="${txId}">${shortTx}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap justify-center">
+                            <button id="copyTxBtn" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-50 transition text-gray-900">Copy</button>
+                            <button id="showInChainBtn" class="px-3 py-1 rounded-full bg-black text-white hover:opacity-90 transition">Show on Chain</button>
+                            <button id="goToDashboardBtn" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-50 transition text-gray-900">Go to Dashboard</button>
+                        </div>
+                    </div>
+                `;
+
+                Utils.$('copyTxBtn').addEventListener('click', async () => {
+                    await Utils.copyToClipboard(txId);
+                    Utils.$('copyTxBtn').textContent = 'Copied ✓';
+                    setTimeout(() => Utils.$('copyTxBtn').textContent = 'Copy', 900);
+                });
+
+                Utils.$('showInChainBtn').addEventListener('click', () => {
+                    ChainUI.openModal();
+                    setTimeout(() => ChainUI.render(blockIndex), 50);
+                });
+
+                Utils.$('goToDashboardBtn').addEventListener('click', () => {
+                    App.togglePanel();
+                });
+            }
+        };
+
+        // ==================== BLOCKCHAIN MANAGER (API Tabanli) ====================
+        const Blockchain = {
+            async applyVotesToData() {
+                try {
+                    const data = await API.getResults();
+
+                    if (data.success && data.results) {
+                        data.results.forEach(r => {
+                            const key = CANDIDATE_REVERSE[r.candidateId];
+                            if (key && electionData.candidates[key]) {
+                                electionData.candidates[key].votes = r.votes;
+                            }
+                        });
+                        // Kayitli secmen sayisi (katilim orani icin)
+                        if (typeof data.allowedVoters === 'number') {
+                            electionData.allowedVoters = data.allowedVoters;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Sonuc cekme hatasi:', err);
+                }
+            },
+
+            async addVote(voterId, candidateId) {
+                const dbCandidateId = CANDIDATE_MAP[candidateId];
+
+                if (!dbCandidateId) {
+                    throw new Error('Gecersiz aday secimi.');
+                }
+
+                // voterId (citizenship number) ve candidateId gonderilir
+                const data = await API.vote(dbCandidateId, voterId);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Oy verme hatasi.');
+                }
+
+                return {
+                    txId: data.txId,
+                    blockHash: data.blockHash,
+                    index: data.blockIndex
+                };
+            }
+        };
+
+        // ==================== CHAIN UI (API Tabanli) ====================
+        const ChainUI = {
+            openModal() {
+                Utils.show(Utils.$('chainModal'));
+                this.render();
+            },
+
+            closeModal() {
+                Utils.hide(Utils.$('chainModal'));
+            },
+
+            refresh() {
+                const modal = Utils.$('chainModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    this.render();
+                }
+            },
+
+            async render(selectedIndex = null) {
+                const listEl = Utils.$('chainBlocks');
+                const statusEl = Utils.$('chainStatus');
+
+                try {
+                    const [chainData, verifyData] = await Promise.all([
+                        API.getChain(),
+                        API.verifyChain()
+                    ]);
+
+                    if (!chainData.success) {
+                        statusEl.textContent = 'Chain veri hatasi';
+                        return;
+                    }
+
+                    const chain = chainData.blocks;
+                    chainCache = chain;
+
+                    if (verifyData.valid) {
+                        const headHash = chain.length > 0 ? chain[chain.length - 1].hash : '';
+                        statusEl.textContent = `Chain Valid | Length: ${chain.length} | Head: ${Utils.shortHash(headHash)}`;
+                    } else {
+                        statusEl.textContent = `Chain Invalid | Reason: ${verifyData.reason || 'Unknown'}`;
+                    }
+
+                    listEl.innerHTML = '';
+
+                    chain.forEach((b, i) => {
+                        const btn = document.createElement('button');
+                        btn.id = `chain-block-${i}`;
+                        btn.dataset.hash = b.hash;
+                        btn.dataset.index = i;
+
+                        btn.className = `chain-block text-left rounded-2xl border p-4 shadow-sm ${
+                            i === selectedIndex ? 'selected' : 'border-gray-200 bg-white hover:shadow hover:ring-1 hover:ring-gray-300'
+                        }`;
+
+                        const title = document.createElement('div');
+                        title.className = 'font-extrabold tracking-wide text-sm flex items-center gap-2';
+                        title.textContent = i === 0 ? `Genesis (Block #${b.index})` : `Block #${b.index}`;
+
+                        const hashDiv = document.createElement('div');
+                        hashDiv.className = 'text-xs text-gray-600 mt-2';
+                        hashDiv.textContent = `Hash: ${Utils.shortHash(b.hash)}`;
+
+                        const prevDiv = document.createElement('div');
+                        prevDiv.className = 'text-xs text-gray-600 mt-1';
+                        prevDiv.textContent = `Prev: ${Utils.shortHash(b.previousHash)}`;
+
+                        btn.append(title, hashDiv, prevDiv);
+                        btn.addEventListener('click', () => {
+                            this.render(i);
+                            this.fillDetail(b);
+                        });
+
+                        listEl.appendChild(btn);
+
+                        if (i < chain.length - 1) {
+                            const arrow = document.createElement('div');
+                            arrow.className = 'flex items-center justify-center min-w-[60px] text-gray-400';
+                            arrow.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
+                            listEl.appendChild(arrow);
+                        }
+                    });
+
+                    if (chain.length > 0) {
+                        this.fillDetail(chain[selectedIndex ?? 0]);
+                    }
+                } catch (err) {
+                    console.error('Chain render hatasi:', err);
+                    statusEl.textContent = 'Chain yuklenemedi';
+                }
+            },
+
+            fillDetail(block) {
+                const detailEl = Utils.$('chainDetail');
+                const titleEl = Utils.$('selectedBlockTitle');
+
+                if (!block) {
+                    if (titleEl) titleEl.textContent = '-';
+                    detailEl.textContent = '';
+                    return;
+                }
+
+                if (titleEl) {
+                    titleEl.textContent = block.index === 0 ? `Genesis (Block #${block.index})` : `Block #${block.index}`;
+                }
+                detailEl.textContent = JSON.stringify(block, null, 2);
+            },
+
+            queryHash() {
+                const input = Utils.$('hashQueryInput');
+                const resultEl = Utils.$('hashQueryResult');
+                const hash = (input?.value || '').trim();
+
+                if (!hash) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">Please enter a hash.</span>';
+                    return;
+                }
+
+                if (chainCache.length === 0) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">Chain verisi yok. Once CHAIN modalini acin.</span>';
+                    return;
+                }
+
+                const idx = chainCache.findIndex(b => b.hash === hash);
+
+                if (idx === -1) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">Not found:</span> Hash not found in the blockchain';
+                    return;
+                }
+
+                const block = chainCache[idx];
+
+                const prevOk = idx === 0 ? null : (block.previousHash === chainCache[idx - 1].hash);
+                const nextOk = idx === chainCache.length - 1 ? null : (chainCache[idx + 1].previousHash === block.hash);
+
+                const badge = (state) => {
+                    if (state === null || state === undefined) {
+                        return '<span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-extrabold text-xs">N/A</span>';
+                    }
+                    return state
+                        ? '<span class="px-2 py-1 rounded-full bg-green-100 text-green-800 font-extrabold text-xs">OK</span>'
+                        : '<span class="px-2 py-1 rounded-full bg-red-100 text-red-800 font-extrabold text-xs">ERROR</span>';
+                };
+
+                let boundaryNote = '';
+                if (prevOk === null && nextOk === null) {
+                    boundaryNote = "This chain contains only the <b>Genesis</b> block.";
+                } else if (prevOk === null) {
+                    boundaryNote = "This is the <b>Genesis</b> block (no previous block).";
+                } else if (nextOk === null) {
+                    boundaryNote = "This is the <b>Head</b> block (no next block).";
+                }
+
+                resultEl.innerHTML = `
+                    <div class="flex flex-col gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-extrabold">Block #${block.index}</span>
+                            <span class="text-gray-500 text-xs">Height: ${block.index} | Length: ${chainCache.length}</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="p-3 border rounded-2xl bg-white flex items-center justify-between">
+                                <span class="font-bold text-sm">Prev consistency</span>${badge(prevOk)}
+                            </div>
+                            <div class="p-3 border rounded-2xl bg-white flex items-center justify-between">
+                                <span class="font-bold text-sm">Next consistency</span>${badge(nextOk)}
+                            </div>
+                        </div>
+                        ${boundaryNote ? `<div class="text-xs text-gray-700 bg-gray-50 border rounded-2xl p-3">${boundaryNote}</div>` : ''}
+                        <div class="text-xs text-gray-500">Not: Hash dogrulama (selfOk) sunucu tarafinda <b>Verify</b> ile yapilir.</div>
+                    </div>
+                `;
+
+                this.render(idx);
+                this.fillDetail(block);
+                this.scrollToBlock(idx);
+            },
+
+            queryTxId() {
+                const input = Utils.$('txQueryInput');
+                const resultEl = Utils.$('txQueryResult');
+                const txId = (input?.value || '').trim();
+
+                if (!txId) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">Please enter a TxID.</span>';
+                    return;
+                }
+
+                if (chainCache.length === 0) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">Chain verisi yok. Once CHAIN modalini acin.</span>';
+                    return;
+                }
+
+                let foundIndex = -1, foundBlock = null;
+
+                for (let i = 1; i < chainCache.length; i++) {
+                    if (chainCache[i]?.data?.txId === txId) {
+                        foundIndex = i;
+                        foundBlock = chainCache[i];
+                        break;
+                    }
+                }
+
+                if (foundIndex === -1) {
+                    resultEl.innerHTML = '<span class="text-red-600 font-bold">TxID not found on blockchain.</span>';
+                    return;
+                }
+
+                const candidateLabel = Utils.getCandidateLabel(foundBlock.data?.candidateId);
+
+                resultEl.innerHTML = `
+                    <div class="p-3 border rounded-2xl bg-white">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-extrabold">TxID found</span>
+                            <span class="text-gray-500 text-xs">Block #${foundIndex}</span>
+                        </div>
+                        <div class="mt-2 text-sm">
+                            <div><span class="font-bold">Candidate:</span> ${candidateLabel}</div>
+                            <div><span class="font-bold">Time:</span> ${new Date(foundBlock.timestamp).toLocaleString('tr-TR')}</div>
+                        </div>
+                    </div>
+                `;
+
+                this.render(foundIndex);
+                this.fillDetail(foundBlock);
+                this.scrollToBlock(foundIndex);
+            },
+
+            scrollToBlock(index) {
+                const btn = Utils.$(`chain-block-${index}`);
+                if (btn?.scrollIntoView) {
+                    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    btn.classList.add('ring-4', 'ring-black/10');
+                    setTimeout(() => btn.classList.remove('ring-4', 'ring-black/10'), 1200);
+                }
+            },
+
+            async exportChain() {
+                try {
+                    const chainData = await API.getChain();
+
+                    if (!chainData.success) {
+                        Utils.$('importExportResult').innerHTML = '<span class="text-red-600 font-bold">Chain verisi alinamadi.</span>';
+                        return;
+                    }
+
+                    const snapshot = {
+                        schema: 'SENG_CHAIN_V1',
+                        exportedAt: new Date().toISOString(),
+                        source: 'server',
+                        chain: chainData.blocks
+                    };
+
+                    const json = JSON.stringify(snapshot, null, 2);
+                    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+                    const filename = `seng-chain-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 50);
+
+                    Utils.$('importExportResult').innerHTML = `<span class="text-green-700 font-extrabold">Export ready</span> (${filename})`;
+                } catch (e) {
+                    Utils.$('importExportResult').innerHTML = `<span class="text-red-600 font-bold">Error:</span> ${e.message || e}`;
+                }
+            }
+        };
+
+        // ==================== CITY RESULTS (CNN/AP Style) ====================
+        const CityResults = {
+            cityData: {},
+
+            init() {
+                this.populateDropdown();
+                const dropdown = Utils.$('cityDropdown');
+                if (dropdown) {
+                    dropdown.addEventListener('change', (e) => this.onDropdownChange(e.target.value));
+                }
+                this.refresh();
+            },
+
+            populateDropdown() {
+                const dropdown = Utils.$('cityDropdown');
+                if (!dropdown) return;
+
+                // Tum iller alfabetik sirayla, plaka kodu yok
+                Object.entries(CITIES)
+                    .sort((a, b) => a[1].localeCompare(b[1], 'tr'))
+                    .forEach(([code, name]) => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = name;
+                        dropdown.appendChild(opt);
+                    });
+            },
+
+            async refresh() {
+                try {
+                    const base = (typeof API_BASE !== 'undefined') ? API_BASE : '';
+                    const res = await fetch(base + '/api/results/map');
+                    const data = await res.json();
+                    if (!data.success) return;
+
+                    this.cityData = data.provinces || {};
+                    this.renderFeaturedCities();
+
+                    const dropdown = Utils.$('cityDropdown');
+                    if (dropdown && dropdown.value) {
+                        this.onDropdownChange(dropdown.value);
+                    }
+                } catch (err) {
+                    console.error('City results fetch error:', err);
+                }
+            },
+
+            renderFeaturedCities() {
+                const container = Utils.$('featuredCities');
+                if (!container) return;
+                container.innerHTML = '';
+
+                FEATURED_PLATES.forEach(plate => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'featured-city-card border border-gray-200 shadow-sm';
+                    wrapper.appendChild(this.createCityCard(plate));
+                    container.appendChild(wrapper);
+                });
+            },
+
+            onDropdownChange(plate) {
+                const container = Utils.$('selectedCityCard');
+                if (!container) return;
+
+                if (!plate) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                container.innerHTML = '';
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'city-fade-in border border-gray-200';
+                cardWrapper.appendChild(this.createCityCard(plate));
+                container.appendChild(cardWrapper);
+            },
+
+            createCityCard(plate) {
+                const cityName = CITIES[plate] || `İl ${plate}`;
+                const data = this.cityData[plate];
+
+                const c1Votes = data ? (parseInt(data['1']) || 0) : 0;
+                const c2Votes = data ? (parseInt(data['2']) || 0) : 0;
+                const total = c1Votes + c2Votes;
+                const c1Pct = total > 0 ? ((c1Votes / total) * 100).toFixed(1) : '0.0';
+                const c2Pct = total > 0 ? ((c2Votes / total) * 100).toFixed(1) : '0.0';
+
+                const c1Leading = c1Votes > c2Votes;
+                const c2Leading = c2Votes > c1Votes;
+                const tied = c1Votes === c2Votes;
+                const diff = Math.abs(c1Votes - c2Votes);
+
+                const checkIcon = (onDark) => `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full ${onDark ? 'bg-white/30' : 'bg-green-600'} text-white flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>`;
+
+                // Satir CSS class'lari hesapla
+                let c1RowClass, c2RowClass;
+                if (tied) {
+                    c1RowClass = 'candidate-row tied';
+                    c2RowClass = 'candidate-row tied';
+                } else if (c1Leading) {
+                    c1RowClass = 'candidate-row lead-blue';   // onde: koyu yesil
+                    c2RowClass = 'candidate-row trail-red';    // geride: acik kirmizi
+                } else {
+                    c1RowClass = 'candidate-row trail-blue';   // geride: acik mavi/yesil
+                    c2RowClass = 'candidate-row lead-red';     // onde: koyu kirmizi
+                }
+
+                const card = document.createElement('div');
+                card.className = 'city-card';
+
+                card.innerHTML = `
+                    <!-- Header -->
+                    <div class="city-card-header">
+                        <h3 class="font-extrabold text-lg md:text-xl uppercase tracking-wide text-gray-900">${cityName}</h3>
+                    </div>
+
+                    <!-- Column Headers -->
+                    <div class="flex items-center px-5 py-2 border-b border-gray-200 bg-gray-50">
+                        <span class="flex-1 text-[11px] font-bold uppercase tracking-wider text-gray-500">Candidate</span>
+                        <span class="w-16 md:w-20 text-[11px] font-bold uppercase tracking-wider text-gray-500 text-right">Percent</span>
+                        <span class="w-20 md:w-24 text-[11px] font-bold uppercase tracking-wider text-gray-500 text-right">Votes</span>
+                    </div>
+
+                    <!-- Candidate 1: Fenerbahçe (LACİVERT) -->
+                    <div class="${c1RowClass}">
+                        <img src="images/fenerbahce.png" alt="${electionData.candidates.left.name}" class="w-10 h-10 md:w-12 md:h-12 rounded-full object-contain flex-shrink-0" style="background-color: #001e62; padding: 2px;"/>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="cr-name font-bold text-sm md:text-base text-gray-900">${electionData.candidates.left.name}</span>
+                                ${c1Leading && !tied ? checkIcon(true) : ''}
+                            </div>
+                            <span class="cr-party text-xs md:text-sm text-gray-500">${electionData.candidates.left.party}</span>
+                        </div>
+                        <span class="cr-pct w-16 md:w-20 text-right font-extrabold text-lg md:text-2xl ${c1Leading && !tied ? 'text-white' : 'text-gray-800'}" style="font-variant-numeric: tabular-nums;">${c1Pct}%</span>
+                        <div class="w-20 md:w-24 text-right">
+                            <div class="cr-votes font-bold text-sm md:text-lg text-gray-900" style="font-variant-numeric: tabular-nums;">${c1Votes.toLocaleString('tr-TR')}</div>
+                            ${c1Leading && !tied ? `<div class="cr-ahead text-xs md:text-sm font-medium text-white/80">${diff.toLocaleString('tr-TR')} ahead</div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Candidate 2: Galatasaray (KIRMIZI) -->
+                    <div class="${c2RowClass}" style="border-bottom: none;">
+                        <img src="images/galatasaray.png" alt="${electionData.candidates.right.name}" class="w-10 h-10 md:w-12 md:h-12 rounded-full object-contain flex-shrink-0" style="background-color: #c8102e; padding: 2px;"/>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="cr-name font-bold text-sm md:text-base text-gray-900">${electionData.candidates.right.name}</span>
+                                ${c2Leading && !tied ? checkIcon(true) : ''}
+                            </div>
+                            <span class="cr-party text-xs md:text-sm text-gray-500">${electionData.candidates.right.party}</span>
+                        </div>
+                        <span class="cr-pct w-16 md:w-20 text-right font-extrabold text-lg md:text-2xl ${c2Leading && !tied ? 'text-white' : 'text-gray-800'}" style="font-variant-numeric: tabular-nums;">${c2Pct}%</span>
+                        <div class="w-20 md:w-24 text-right">
+                            <div class="cr-votes font-bold text-sm md:text-lg text-gray-900" style="font-variant-numeric: tabular-nums;">${c2Votes.toLocaleString('tr-TR')}</div>
+                            ${c2Leading && !tied ? `<div class="cr-ahead text-xs md:text-sm font-medium text-white/80">${diff.toLocaleString('tr-TR')} ahead</div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-5 py-3 border-t border-gray-200">
+                        <span class="text-sm text-gray-500 font-medium">Toplam: ${total.toLocaleString('tr-TR')} oy</span>
+                    </div>
+                `;
+
+                return card;
+            }
+        };
+
+        // ==================== MAIN APP ====================
+        let longPressTimer = null;
+
+        const App = {
+            async init() {
+                await Blockchain.applyVotesToData();
+                UI.updateDashboard();
+                UI.updateVotingPanel();
+                UI.updateDateTime();
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+
+                // Turkiye secim haritasini baslat
+                if (typeof TurkeyMap !== 'undefined') {
+                    TurkeyMap.init('turkeyMapContainer');
+
+                    // Tooltip: dropdown'daki il kartinin AYNISINI goster (DRY)
+                    // Oy yoksa da 0-0 baslayan kart gosterilir
+                    TurkeyMap.setTooltipRenderer((code) => {
+                        return CityResults.createCityCard(code);
+                    });
+
+                    // Click: dropdown'da sec + kartı goster + scroll
+                    TurkeyMap.setOnClick((code) => {
+                        const dropdown = Utils.$('cityDropdown');
+                        if (dropdown) {
+                            dropdown.value = code;
+                            CityResults.onDropdownChange(code);
+                            setTimeout(() => {
+                                const section = Utils.$('selectedCityCard');
+                                if (section && section.firstChild) {
+                                    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }, 100);
+                        }
+                    });
+                }
+
+                // Il bazli sonuc kartlarini baslat
+                CityResults.init();
+
+                setInterval(() => UI.updateDateTime(), 1000);
+
+                // Navbar button: kisa tiklama = togglePanel, uzun basma (3sn) = admin login
+                const navBtn = Utils.$('navbarButton');
+                let pressHandled = false;
+
+                const startPress = () => {
+                    pressHandled = false;
+                    longPressTimer = setTimeout(() => {
+                        pressHandled = true;
+                        this.openAdminLogin();
+                    }, 3000);
+                };
+
+                const endPress = () => {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                    if (!pressHandled) {
+                        this.togglePanel();
+                    }
+                };
+
+                const cancelPress = () => {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                };
+
+                // Mouse events
+                navBtn.addEventListener('mousedown', startPress);
+                navBtn.addEventListener('mouseup', endPress);
+                navBtn.addEventListener('mouseleave', cancelPress);
+
+                // Touch events (mobil)
+                navBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+                navBtn.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+                navBtn.addEventListener('touchcancel', cancelPress);
+
+                document.addEventListener('click', (e) => {
+                    const modal = Utils.$('chainModal');
+                    if (modal && !modal.classList.contains('hidden') && e.target?.id === 'chainModal') {
+                        ChainUI.closeModal();
+                    }
+                });
+            },
+
+            togglePanel() {
+                const dashboard = Utils.$('dashboardPanel');
+                const voting = Utils.$('votingPanel');
+                const navBtn = Utils.$('navbarButtonText');
+
+                if (currentPanel === 'dashboard') {
+                    dashboard.classList.replace('panel-visible', 'panel-hidden');
+                    voting.classList.replace('panel-hidden', 'panel-visible');
+                    navBtn.textContent = 'TÜRKİYE 2025';
+                    currentPanel = 'voting';
+                    this.resetVotingForm();
+                } else {
+                    voting.classList.replace('panel-visible', 'panel-hidden');
+                    dashboard.classList.replace('panel-hidden', 'panel-visible');
+                    navBtn.textContent = 'VOTE';
+                    currentPanel = 'dashboard';
+                    Blockchain.applyVotesToData().then(() => {
+                        UI.updateDashboard();
+                        CityResults.refresh();
+                    });
+                }
+            },
+
+            selectCandidate(candidate) {
+                const leftCard = Utils.$('voteCardLeft');
+                const rightCard = Utils.$('voteCardRight');
+                const checkLeft = Utils.$('checkLeft');
+                const checkRight = Utils.$('checkRight');
+                const submitBtn = Utils.$('submitVoteBtn');
+
+                leftCard.classList.remove('selected');
+                rightCard.classList.remove('selected');
+                Utils.hide(checkLeft);
+                Utils.hide(checkRight);
+
+                if (candidate === 'left') {
+                    leftCard.classList.add('selected');
+                    Utils.show(checkLeft);
+                } else {
+                    rightCard.classList.add('selected');
+                    Utils.show(checkRight);
+                }
+
+                selectedCandidate = candidate;
+                submitBtn.disabled = false;
+
+                if (!isVoteMessagePinned) UI.hideMessage();
+            },
+
+            async submitVote() {
+                const input = Utils.$('citizenshipNumber');
+                const submitBtn = Utils.$('submitVoteBtn');
+
+                if (!selectedCandidate) {
+                    UI.showMessage('Please select a candidate.', 'error');
+                    return;
+                }
+
+                const check = Utils.validateVoterId(input.value);
+                if (!check.ok) {
+                    UI.showMessage(check.reason, 'error');
+                    return;
+                }
+
+                submitBtn.disabled = true;
+
+                try {
+                    const voteRes = await Blockchain.addVote(check.voterId, selectedCandidate);
+
+                    if (voteRes?.txId) {
+                        UI.showTxSuccess(voteRes.txId, voteRes.index);
+                    } else {
+                        UI.showMessage('Vote successfully recorded.', 'success');
+                    }
+
+                    await Blockchain.applyVotesToData();
+                    UI.updateDashboard();
+                    UI.updateVotingPanel();
+                    ChainUI.refresh();
+                    CityResults.refresh();
+
+                    setTimeout(() => {
+                        this.resetVotingForm({ keepMessage: !!voteRes?.txId });
+                    }, CONFIG.TRANSITION_DELAY);
+
+                } catch (err) {
+                    UI.showMessage(err?.message || 'Unknown error.', 'error');
+                    submitBtn.disabled = false;
+                }
+            },
+
+            resetVotingForm(opts = { keepMessage: false }) {
+                Utils.$('citizenshipNumber').value = '';
+                Utils.$('submitVoteBtn').disabled = true;
+                selectedCandidate = null;
+
+                Utils.hide(Utils.$('checkLeft'));
+                Utils.hide(Utils.$('checkRight'));
+                Utils.$('voteCardLeft').classList.remove('selected');
+                Utils.$('voteCardRight').classList.remove('selected');
+
+                if (!opts.keepMessage) UI.hideMessage();
+            },
+
+            // ==================== ADMIN LOGIN ====================
+            openAdminLogin() {
+                Utils.show(Utils.$('adminLoginModal'));
+                Utils.$('adminUsername').value = '';
+                Utils.$('adminPassword').value = '';
+                Utils.hide(Utils.$('adminLoginMessage'));
+                Utils.$('adminUsername').focus();
+            },
+
+            closeAdminLogin() {
+                Utils.hide(Utils.$('adminLoginModal'));
+            },
+
+            async submitAdminLogin() {
+                const username = Utils.$('adminUsername').value.trim();
+                const password = Utils.$('adminPassword').value;
+                const msgEl = Utils.$('adminLoginMessage');
+
+                if (!username || !password) {
+                    msgEl.textContent = 'Please enter username and password.';
+                    msgEl.classList.remove('hidden', 'text-green-600');
+                    msgEl.classList.add('text-red-600');
+                    return;
+                }
+
+                try {
+                    const data = await API.login(username, password);
+
+                    if (data.success) {
+                        const user = API.getUser();
+                        if (user && user.role === 'admin') {
+                            this.closeAdminLogin();
+                            window.location.href = '/admin.html';
+                        } else {
+                            API.logout();
+                            msgEl.textContent = 'Access denied. Admin only.';
+                            msgEl.classList.remove('hidden', 'text-green-600');
+                            msgEl.classList.add('text-red-600');
+                        }
+                    } else {
+                        msgEl.textContent = data.error || 'Login failed.';
+                        msgEl.classList.remove('hidden', 'text-green-600');
+                        msgEl.classList.add('text-red-600');
+                    }
+                } catch (err) {
+                    msgEl.textContent = 'Connection error.';
+                    msgEl.classList.remove('hidden', 'text-green-600');
+                    msgEl.classList.add('text-red-600');
+                }
+            }
+        };
+
+        // ==================== EXPOSE GLOBAL API ====================
+        window.App = App;
+        window.ChainUI = ChainUI;
+
+        // ==================== INITIALIZE ON DOM READY ====================
+        document.addEventListener('DOMContentLoaded', () => App.init());
+
+    })();
+    </script>
+</body>
+</html>
