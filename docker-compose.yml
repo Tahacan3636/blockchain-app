@@ -1,0 +1,41 @@
+# Tek komutla calistirma:  docker compose up --build
+# Ardindan tarayicida:     http://localhost:3000
+#
+# Buradaki gizli anahtarlar SADECE yerel demo icindir.
+# Canli ortamda kendi guclu degerlerinizi kullanin.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: blockchain_voting
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d blockchain_voting"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: blockchain_voting
+      JWT_SECRET: demo-jwt-secret-change-me-0123456789abcdef
+      VOTER_HASH_SECRET: demo-voter-secret-change-me-0123456789abcd
+      ADMIN_PASSWORD: admin123
+      PORT: 3000
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  db-data:
