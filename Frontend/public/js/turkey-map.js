@@ -18,8 +18,8 @@ const TurkeyMap = (function () {
 
     // ==================== ADAY TANIMLARI ====================
     const CANDIDATES = [
-        { id: 1, name: 'FENERBAHÇE', party: 'Fenerbahçe SK', color: '#001e62' },
-        { id: 2, name: 'GALATASARAY', party: 'Galatasaray SK', color: '#c8102e' },
+        { id: 1, name: 'YENİLİKÇİLER', party: 'Yenilikçi Öğrenci Topluluğu', color: '#001e62' },
+        { id: 2, name: 'GELENEKÇİLER', party: 'Gelenekçi Öğrenci Topluluğu', color: '#c8102e' },
     ];
 
     // ==================== STATE ====================
@@ -95,9 +95,7 @@ const TurkeyMap = (function () {
     // ==================== API'DEN VERI CEK ====================
     async function fetchMapData() {
         try {
-            const base = (typeof API_BASE !== 'undefined') ? API_BASE : '';
-            const res = await fetch(base + '/api/results/map');
-            const data = await res.json();
+            const data = await API.getProvinceResults();
             if (!data.success) return;
 
             // provinceVotes state'ini guncelle
@@ -142,7 +140,7 @@ const TurkeyMap = (function () {
         if (summaryEl) {
             if (total === 0) {
                 summaryEl.innerHTML = `
-                    <div class="text-gray-400 text-sm">Henüz oy verisi yok</div>
+                    <div class="text-gray-400 text-sm">${I18n.t('map.noData')}</div>
                 `;
             } else {
                 summaryEl.innerHTML = `
@@ -150,15 +148,15 @@ const TurkeyMap = (function () {
                         <div class="flex items-center gap-2">
                             <span class="inline-block w-3 h-3 rounded-full" style="background:${CANDIDATES[0].color}"></span>
                             <span class="font-semibold text-gray-700">${CANDIDATES[0].name}</span>
-                            <span class="font-bold" style="color:${CANDIDATES[0].color}">%${pct1}</span>
+                            <span class="font-bold" style="color:${CANDIDATES[0].color}">${pct1}%</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="inline-block w-3 h-3 rounded-full" style="background:${CANDIDATES[1].color}"></span>
                             <span class="font-semibold text-gray-700">${CANDIDATES[1].name}</span>
-                            <span class="font-bold" style="color:${CANDIDATES[1].color}">%${pct2}</span>
+                            <span class="font-bold" style="color:${CANDIDATES[1].color}">${pct2}%</span>
                         </div>
                         <div class="text-gray-500 text-sm">
-                            Toplam: ${total.toLocaleString('tr-TR')} oy
+                            ${I18n.t('map.total', { n: total.toLocaleString(I18n.locale()) })}
                         </div>
                     </div>
                 `;
@@ -226,17 +224,17 @@ const TurkeyMap = (function () {
         containerEl.innerHTML = `
             <div class="text-center mb-4">
                 <div class="flex items-center justify-center gap-3 mb-2">
-                    <h2 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">İL BAZLI SEÇİM HARİTASI</h2>
+                    <h2 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight" data-i18n="map.title">${I18n.t('map.title')}</h2>
                     <span id="mapLiveBadge" class="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">
                         <span class="relative flex h-2.5 w-2.5">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                         </span>
-                        CANLI
+                        <span data-i18n="map.live">${I18n.t('map.live')}</span>
                     </span>
                 </div>
                 <div id="mapSummary" class="text-sm text-gray-600">
-                    <div class="text-gray-400 text-sm">Veriler yükleniyor...</div>
+                    <div class="text-gray-400 text-sm">${I18n.t('map.loading')}</div>
                 </div>
             </div>
             <div id="mapSvgWrapper" class="relative w-full" style="max-width:800px; margin:0 auto;"></div>
@@ -261,8 +259,11 @@ const TurkeyMap = (function () {
 
             // 5 saniyede bir polling
             pollIntervalId = setInterval(fetchMapData, 5000);
+
+            // Dil degisince ozet satirini yeniden yaz (baslik/legend data-i18n ile guncellenir)
+            I18n.onChange(updateSummary);
         } catch (err) {
-            containerEl.innerHTML += '<p class="text-red-500 text-center">Harita yüklenemedi.</p>';
+            containerEl.innerHTML += `<p class="text-red-500 text-center">${I18n.t('map.error')}</p>`;
             console.error('Turkey map error:', err);
         }
     }
@@ -330,7 +331,7 @@ const TurkeyMap = (function () {
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="inline-block w-3 h-3 rounded bg-gray-200 border border-gray-300"></span>
-                <span>Oy yok / Yakın yarış</span>
+                <span data-i18n="map.noVotes">${I18n.t('map.noVotes')}</span>
             </div>
         `;
         wrapper.appendChild(legend);

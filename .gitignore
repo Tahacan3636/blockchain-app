@@ -1,30 +1,17 @@
 # Dependencies
 node_modules/
 
-# Environment variables (hassas bilgiler!)
+# Environment variables (secrets)
 .env
-.env.local
-.env.production
 
-# OS files
+# OS / IDE
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
 
 # Logs
 *.log
-npm-debug.log*
-
-# Next.js
-.next/
-out/
-
-# Build
-dist/
-build/
 
 # Claude Code
 .claude/

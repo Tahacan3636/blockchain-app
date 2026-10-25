@@ -1,17 +1,12 @@
 // =============================================================
 // public/js/config.js - Frontend Yapilandirma
 // =============================================================
-// Bu dosya frontend'in backend'e baglanmasi icin gerekli ayarlari icerir.
-//
-// DEPLOY SONRASI:
-// API_BASE degerini Render'dan aldigin URL ile degistir.
-// Ornek: const API_BASE = 'https://blockchain-voting-api.onrender.com';
+// Backend adresi tek yerde tanimlidir.
+// - Lokal (localhost): frontend'i backend sunar -> ayni adres ('')
+// - Canli (Netlify):   istekler Render'daki backend'e gider
+// Bu dosya HTML'de diger JS dosyalarindan ONCE yuklenmelidir.
 // =============================================================
 
-// Backend API adresi
-// Lokal gelistirmede: '' (bos string = ayni sunucu)
-// Deploy'da: Render URL'ini yaz
-const API_BASE = 'https://blockchain-app-e63h.onrender.com';
-
-// Disa ac (diger JS dosyalari kullanabilsin)
-// Not: Bu dosya HTML'de diger JS dosyalarindan ONCE yuklenmelidir.
+const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? ''
+    : 'https://blockchain-app-e63h.onrender.com';

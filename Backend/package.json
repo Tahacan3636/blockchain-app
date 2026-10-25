@@ -6,9 +6,16 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "db:init": "node db/init.js"
+    "db:init": "node db/init.js",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "test:unit": "node --test \"tests/unit/*.test.js\""
   },
-  "keywords": ["blockchain", "voting", "election", "api"],
+  "keywords": [
+    "blockchain",
+    "voting",
+    "election",
+    "api"
+  ],
   "author": "Tahacan3636",
   "license": "MIT",
   "repository": {
@@ -20,14 +27,18 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "express-rate-limit": "^8.7.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.18.0",
-    "xlsx": "^0.18.5"
+    "pg": "^8.18.0"
+  },
+  "overrides": {
+    "qs": "^6.16.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

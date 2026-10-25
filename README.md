@@ -1,93 +1,117 @@
 # Blockchain Voting System
 
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Tests](https://img.shields.io/badge/tests-61%20passing-brightgreen)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A blockchain-based voting/election system built as a Software Engineering course project. Votes are recorded as blocks in a SHA-256 hash chain, ensuring immutability and tamper detection. Features a real-time results dashboard, interactive Turkey election map, admin panel with voter management, and full blockchain verification.
+A blockchain-based student election system developed as a graduation project. Every vote is stored as a block in a SHA-256 hash chain, so any later change to a vote is detected. Voters authenticate with a one-time voting code, their identity is hidden with HMAC, and every voter can verify that their vote is on the chain with a transaction receipt.
 
 ---
 
 ## Features
 
-- **Blockchain-Backed Voting** — Each vote creates a new block linked to the previous one via SHA-256 hashes. Tampering with any block invalidates the entire chain.
-- **Voter Privacy** — Voter IDs are hashed before storage. The system prevents double voting without revealing identities.
-- **Real-Time Results** — Live vote counts and percentage bars update as votes come in.
-- **Interactive Election Map** — Province-level results displayed on an SVG map of Turkey using React Simple Maps.
-- **Admin Dashboard** — Manage users, import voter lists from Excel, view statistics, reset elections.
-- **JWT Authentication** — Role-based access control (voter/admin) with bcrypt password hashing.
-- **Chain Verification** — API endpoint to verify the entire blockchain integrity block by block.
-- **Allowed Voter Lists** — Admin can import an Excel file of authorized student IDs and province codes.
-
----
-
-## Tech Stack
-
-| Backend | Frontend |
-|---------|----------|
-| Node.js + Express.js 4 | HTML5 / CSS3 / Tailwind CSS |
-| PostgreSQL | Next.js 14 + React 18 |
-| JWT + bcrypt | React Simple Maps (Turkey SVG) |
-| SHA-256 blockchain (crypto) | Vanilla JS + Fetch API |
-| xlsx (Excel parsing) | TypeScript |
+- **Hash-chained ballots**: each vote is a block that stores the hash of the previous block. Changing or deleting any block breaks verification.
+- **Tamper detection**: `GET /api/chain/verify` recalculates every hash, checks every link and cross-checks the vote count against the voter registry, so deleting the last block is caught too.
+- **One-time voting codes**: the admin imports the voter list from Excel. The system generates a random code for each student, stores only its HMAC hash and returns the codes once as a downloadable Excel file.
+- **Voter privacy**: blocks contain `HMAC(secret, studentNumber)`, not the student number. Without the server secret, the hash cannot be brute-forced back to a student number.
+- **Double-vote prevention**: enforced inside a database transaction with row locking.
+- **Concurrency safety**: chain writes are serialized with a PostgreSQL advisory lock, so 50 simultaneous votes produce 50 valid, consecutive blocks.
+- **Verifiable receipt**: voters look up their transaction ID to confirm their vote is on the chain. The receipt does not reveal the chosen candidate.
+- **Bilingual interface**: Turkish / English toggle (remembered per browser, or `?lang=en`).
+- **Live results and province map**: results are counted directly from the chain and shown on an interactive SVG map of Turkey.
+- **Admin panel**: JWT authentication, role-based access, voter import, statistics and election reset.
+- **Security hardening**: bcrypt password hashing, rate limiting on voting and login, a centralized error handler that never leaks internal details.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────┐         ┌─────────────────┐
-│    Frontend      │  HTTP   │    Backend       │
-│  (Netlify)       │◄───────►│  (Render)        │
-│                  │         │                  │
-│  Static HTML/JS  │         │  Express.js API  │
-│  Next.js (map)   │         │  PostgreSQL DB   │
-│  Tailwind CSS    │         │  Blockchain      │
-└─────────────────┘         └─────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  PRESENTATION LAYER — Frontend (HTML + Tailwind + JS)    │
+│  index.html (vote, results, chain explorer)              │
+│  admin.html (admin panel)   js/api.js (single API client)│
+└────────────────────────────┬─────────────────────────────┘
+                             │  HTTPS + JSON (REST)
+┌────────────────────────────▼─────────────────────────────┐
+│  APPLICATION LAYER — Backend (Node.js + Express)         │
+│                                                          │
+│  routes/      HTTP only: read request, call service,     │
+│               return JSON                                │
+│  middleware/  auth (JWT + role), rate limit, errors      │
+│  services/    business logic: vote, chain, voters,       │
+│               results                                    │
+│  utils/       pure crypto functions (SHA-256, HMAC)      │
+└────────────────────────────┬─────────────────────────────┘
+                             │  SQL (parameterized)
+┌────────────────────────────▼─────────────────────────────┐
+│  DATA LAYER — PostgreSQL                                 │
+│  blocks · allowed_voters · candidates · users            │
+└──────────────────────────────────────────────────────────┘
 ```
 
-The frontend is a static site deployed on **Netlify**. The backend is a REST API deployed on **Render** with a managed PostgreSQL database. Communication happens via JSON over HTTPS with CORS configured.
+**Request flow for a vote:**
+`POST /api/vote` → `voteLimiter` → `routes/public.js` → `voteService.castVote()` → transaction: check voter and code → check `has_voted` → `chainService.appendBlock()` (advisory lock, hash, insert) → mark voter → commit → return `txId`.
+
+---
+
+## How the Blockchain Works
+
+1. A **genesis block** (index 0, `previous_hash = "0"`) starts the chain.
+2. Each vote creates a block with data `{ voterHash, candidateId, txId, provinceCode }`.
+3. `hash = SHA-256(index | timestamp | canonicalJSON(data) | previous_hash)`.
+4. Because the previous hash is part of each block's hash, changing one block invalidates every link after it.
+5. Verification recalculates all hashes, checks the links, rejects duplicate voters and compares the vote count with the number of voters marked as having voted.
+
+**Scope note:** the chain is stored in one PostgreSQL database (a *tamper-evident ledger*), not on a distributed peer-to-peer network. It detects modification but cannot prevent an attacker with full database and secret access from rebuilding the chain. Distributing the chain head (anchoring) or multiple nodes are listed as future work.
 
 ---
 
 ## Getting Started
 
 ### Requirements
-- Node.js **v18+**
-- PostgreSQL (local or hosted)
-- npm
+- Node.js **20+**
+- PostgreSQL 14+ (local, Docker or hosted)
 
-### 1. Backend Setup
+### Run locally
+
+```bash
+# (optional) PostgreSQL with Docker
+docker run -d --name bv-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=blockchain_voting -p 5433:5432 postgres:16
+
+cd Backend
+cp .env.example .env      # fill in DB settings and the two secrets
+npm install
+npm start                 # http://localhost:3000  (serves the frontend too)
+```
+
+Admin login: hold the **VOTE** button in the navbar for 3 seconds. Default credentials: `admin` / `ADMIN_PASSWORD` from `.env`.
+
+### Typical demo flow
+1. Log in as admin and import `Backend/data/blockchain_veriler.xlsx`. The voting codes are downloaded as Excel.
+2. Vote with a student number and its code.
+3. Open **CHAIN** to inspect the blocks, verify the chain and look up your TxID receipt.
+
+---
+
+## Testing
 
 ```bash
 cd Backend
-cp .env.example .env    # Edit .env with your database credentials
-npm install
-npm run db:init         # Create tables + seed data
-npm start               # http://localhost:3000
+npm test          # 61 tests: unit + integration (uses a separate test database)
+npm run test:unit # unit tests only, no database needed
 ```
 
-### 2. Frontend Setup
-
-```bash
-cd Frontend
-npm install
-npm run dev             # http://localhost:3001
-```
-
-Update `Frontend/public/js/config.js` to point to your backend URL:
-
-```javascript
-const API_BASE = 'http://localhost:3000';  // Change for production
-```
-
-### Default Credentials
-
-| Username | Password | Role |
-|----------|----------|------|
-| admin | admin123 | Admin |
+| Suite | What it proves |
+|-------|----------------|
+| `unit/crypto` | SHA-256 test vector, deterministic hashing, HMAC is not brute-forceable SHA-256, voting code format and uniqueness |
+| `unit/chain` | Valid chains pass; modified data, recomputed hashes, broken order, forged genesis and duplicate voters are detected |
+| `unit/voterList` | Voter list validation and de-duplication |
+| `integration/vote` | Full voting flow, wrong or foreign codes, double voting, privacy of the public chain, results, receipts |
+| `integration/chain` | Tamper detection on the real database (edit, delete middle, delete last), 50 concurrent votes, 5 concurrent double votes |
+| `integration/admin` | Login, bcrypt storage, 401/403 access control, code generation, codes never stored in plain text, reset and clear |
 
 ---
 
@@ -97,157 +121,84 @@ const API_BASE = 'http://localhost:3000';  // Change for production
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Login and receive JWT token |
-| POST | `/api/vote` | Cast a vote (voter ID required) |
-| GET | `/api/results` | Get election results with percentages |
-| GET | `/api/results/map` | Get province-level results for the map |
-| GET | `/api/chain` | Get the full blockchain |
-| GET | `/api/chain/verify` | Verify blockchain integrity |
-| GET | `/api/health` | Health check (server + database status) |
+| POST | `/api/vote` | Cast a vote `{ studentNumber, voterCode, candidateId }` |
+| GET | `/api/results` | Results per candidate with percentages and turnout |
+| GET | `/api/results/map` | Results per province |
+| GET | `/api/chain` | Full blockchain (public audit) |
+| GET | `/api/chain/verify` | Verify chain integrity |
+| GET | `/api/receipt/:txId` | Check that a vote is on the chain |
+| GET | `/api/health` | Server and database status |
+| POST | `/api/auth/login` | Admin login, returns JWT |
 
-### Admin (requires JWT + admin role)
+### Admin (JWT + `admin` role)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/admin/stats` | Election statistics dashboard |
-| GET | `/api/admin/users` | List all users |
-| PATCH | `/api/admin/users/:id/role` | Change a user's role |
-| DELETE | `/api/admin/users/:id` | Delete a user |
-| POST | `/api/admin/voters/import` | Import voter list from Excel data |
-| GET | `/api/admin/voters` | Get the allowed voter list |
-| DELETE | `/api/admin/voters` | Clear voter list and reset votes |
-| POST | `/api/admin/election/reset` | Reset the entire election (requires `{ confirm: true }`) |
+| GET | `/api/admin/stats` | Election statistics |
+| POST | `/api/admin/voters/import` | Import voter list, returns one-time codes (starts a new election) |
+| GET | `/api/admin/voters` | Voter list with voted status |
+| DELETE | `/api/admin/voters` | Clear voter list and all votes |
+| POST | `/api/admin/election/reset` | Delete votes, keep voter list (`{ confirm: true }`) |
 
 ---
 
 ## Database Schema
 
-| Table | Description |
-|-------|-------------|
-| `candidates` | Election candidates (id, name, party, color) |
-| `voters` | Hashed voter records for double-vote prevention |
-| `blocks` | Blockchain blocks (index, timestamp, data as JSONB, hash, previous_hash, next_hash) |
-| `users` | Registered users with bcrypt password hashes and roles |
-| `allowed_voters` | Admin-imported list of authorized voter IDs and province codes |
-
----
-
-## How the Blockchain Works
-
-1. A **genesis block** is created during database initialization (index 0, previous_hash = "0").
-2. When a voter casts a vote, a new block is created containing:
-   - Hashed voter ID (SHA-256)
-   - Candidate ID
-   - Transaction ID (unique hash)
-   - Province code
-3. The block's hash is calculated from: `index | timestamp | data | previous_hash`
-4. Each block references the previous block's hash, forming an immutable chain.
-5. The `/api/chain/verify` endpoint recalculates every hash and checks all links.
+| Table | Columns |
+|-------|---------|
+| `blocks` | block_index, timestamp (TEXT, kept verbatim for hashing), data (JSONB), hash, previous_hash, next_hash |
+| `allowed_voters` | student_number, province_code, code_hash (HMAC), has_voted |
+| `candidates` | id, name, party, color |
+| `users` | username, password_hash (bcrypt), role |
 
 ---
 
 ## Deployment
 
 ### Backend → Render
-
-1. Create a **Web Service** on [render.com](https://render.com)
-2. Connect your GitHub repository
-3. Settings:
-   - **Root Directory:** `Backend`
-   - **Build Command:** `npm install`
-   - **Start Command:** `node server.js`
-4. Add environment variables:
-   - `DATABASE_URL` — Render PostgreSQL connection string
-   - `JWT_SECRET` — Strong random secret (min 32 chars)
-   - `FRONTEND_URL` — Your Netlify URL
-   - `ADMIN_PASSWORD` — Admin account password
+- **Root Directory:** `Backend` · **Build:** `npm install` · **Start:** `node server.js`
+- Environment variables: `DATABASE_URL`, `JWT_SECRET`, `VOTER_HASH_SECRET`, `ADMIN_PASSWORD`, `FRONTEND_URL`
 
 ### Frontend → Netlify
-
-1. Create a new site on [netlify.com](https://netlify.com)
-2. Connect your GitHub repository
-3. Settings:
-   - **Base directory:** `Frontend`
-   - **Build command:** *(leave empty)*
-   - **Publish directory:** `Frontend/public`
-4. Update `Frontend/public/js/config.js` with your Render backend URL
-
-### PostgreSQL Database
-
-Create a free PostgreSQL instance on Render:
-1. Render Dashboard → New → PostgreSQL
-2. Copy the **Internal Database URL**
-3. Add it as `DATABASE_URL` in your backend environment variables
+- **Publish directory:** `Frontend/public` (no build step)
+- The backend URL for production is set in `Frontend/public/js/config.js`.
 
 ---
 
 ## Project Structure
 
 ```
-blockchain-voting-system/
 ├── Backend/
-│   ├── server.js              # Entry point
-│   ├── package.json
-│   ├── .env.example           # Environment variables template
-│   ├── db/
-│   │   ├── index.js           # PostgreSQL connection pool
-│   │   └── init.js            # Table creation & seed data
-│   ├── routes/
-│   │   ├── api.js             # Voting, results, blockchain endpoints
-│   │   ├── auth.js            # Register & login (JWT)
-│   │   └── admin.js           # Admin panel endpoints
-│   ├── middleware/
-│   │   └── auth.js            # JWT authentication & role checks
-│   ├── utils/
-│   │   └── blockchain.js      # SHA-256 hashing & block utilities
-│   └── data/
-│       └── blockchain_veriler.xlsx
-├── Frontend/
-│   ├── public/                # Static files (HTML, JS, CSS)
-│   │   ├── index.html         # Main voting page
-│   │   ├── admin.html         # Admin dashboard
-│   │   ├── js/
-│   │   │   ├── config.js      # API base URL configuration
-│   │   │   ├── api.js         # API client
-│   │   │   ├── blockchain.js  # Client-side blockchain utilities
-│   │   │   └── turkey-map.js  # Map interaction logic
-│   │   └── images/
-│   ├── app/                   # Next.js pages (election map)
-│   ├── components/            # React components
-│   ├── lib/                   # TypeScript helpers
-│   └── package.json
-├── docs/                      # Project documentation
-├── .gitignore
-└── README.md
+│   ├── server.js             # Entry point: init DB, start server
+│   ├── app.js                # Express app (middleware + routes)
+│   ├── config.js             # Environment variables, validated once
+│   ├── routes/               # HTTP layer: public.js, auth.js, admin.js
+│   ├── services/             # Business logic: vote, chain, voter, result
+│   ├── middleware/           # auth (JWT/role), rateLimit, errorHandler
+│   ├── utils/                # crypto.js (hash/HMAC), errors.js
+│   ├── db/                   # index.js (pool + transactions), init.js (schema)
+│   ├── tests/                # unit/ and integration/ tests
+│   └── data/                 # sample voter list (Excel)
+├── Frontend/public/
+│   ├── index.html            # Voting, live results, chain explorer
+│   ├── admin.html            # Admin panel
+│   ├── css/style.css         # Custom styles
+│   ├── js/                   # config, i18n (TR/EN), api (client), app, admin, turkey-map
+│   ├── data/tr-cities.json   # Province borders (GeoJSON)
+│   └── images/
+└── docs/                     # MIMARI.md (architecture & design patterns), DEPLOY-REHBERI.md
 ```
-
----
-
-## Scripts
-
-### Backend
-
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start the production server |
-| `npm run dev` | Start with auto-reload (nodemon) |
-| `npm run db:init` | Create tables and seed initial data |
-
-### Frontend
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Next.js dev server on port 3001 |
-| `npm run build` | Build for production |
 
 ---
 
 ## Developers
 
 - **Muhammed Taha CAN**
-- **Ilhan Sidal KARADENIZ**
 - **Furkan YILMAZ**
+
+### Credits
+
+Candidate photos from [Unsplash](https://unsplash.com) (Unsplash License): circuit board by [Tim Käbel](https://unsplash.com/photos/FCrYdP8gohg), old books by [Clem Onojeghuo](https://unsplash.com/photos/0PPKxWtYh0g).
 
 ## License
 

@@ -1,53 +1,46 @@
 // =============================================================
-// db/index.js - Veritabani Baglanti Ayarlari
+// db/index.js - Veritabani Baglantisi (Veri Katmani)
 // =============================================================
-// PostgreSQL'e baglanmak icin bir "Connection Pool" olusturur.
-// Baglanti bilgileri .env dosyasindan okunur (guvenlik icin).
+// PostgreSQL'e bir "Connection Pool" (baglanti havuzu) ile baglanir.
+// Pool, her istekte yeni baglanti acmak yerine hazir baglantilari
+// yeniden kullanir -> daha hizli.
 //
-// Render'da: DATABASE_URL otomatik saglanir.
-// Lokalde: .env dosyasina yaz veya ayri ayri tanimla.
+// ONEMLI: Transaction (BEGIN/COMMIT) icin pool.query KULLANILMAZ.
+// pool.query her cagrida havuzdan FARKLI bir baglanti alabilir;
+// BEGIN bir baglantida, INSERT baska baglantida calisirsa transaction
+// fiilen yoktur. Bu yuzden withTransaction() tek bir baglanti (client)
+// alir ve tum sorgulari o baglanti uzerinden calistirir.
 // =============================================================
 
 const { Pool } = require('pg');
+const config = require('../config');
 
-// DATABASE_URL varsa onu kullan (Render, Heroku vb. icin)
-// Yoksa ayri ayri degiskenleri kullan
-// Production'da DATABASE_URL zorunlu. Lokalde ayri degiskenler kullanilabilir.
-let pool;
+const pool = new Pool(config.db);
 
-if (process.env.DATABASE_URL) {
-    // Render, Heroku vb. icin (production)
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-            rejectUnauthorized: false  // Render PostgreSQL icin gerekli
-        }
-    });
-} else if (process.env.DB_USER && process.env.DB_PASSWORD) {
-    // Lokal gelistirme icin (.env dosyasindan)
-    pool = new Pool({
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432'),
-        database: process.env.DB_NAME || 'blockchain_voting'
-    });
-} else {
-    console.error('❌ Veritabani bilgileri eksik! .env dosyasina DATABASE_URL veya DB_USER/DB_PASSWORD ekleyin.');
-    process.exit(1);
-}
-
-// Baglanti kontrolu
 pool.on('error', (err) => {
     console.error('Veritabani baglanti hatasi:', err.message);
 });
 
-// Baglanti testi
-pool.query('SELECT NOW()')
-    .then(() => console.log('✅ PostgreSQL baglantisi basarili'))
-    .catch(err => console.error('❌ PostgreSQL baglanti hatasi:', err.message));
+// Tek sorgu (transaction gerektirmeyen okumalar icin)
+function query(text, params) {
+    return pool.query(text, params);
+}
 
-module.exports = {
-    query: (text, params) => pool.query(text, params),
-    pool: pool
-};
+// Transaction yardimcisi: fn icindeki tum sorgular ya HEP BIRLIKTE
+// kalici olur (COMMIT) ya da hicbiri olmaz (ROLLBACK).
+async function withTransaction(fn) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const result = await fn(client);
+        await client.query('COMMIT');
+        return result;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release(); // baglantiyi havuza geri ver
+    }
+}
+
+module.exports = { query, withTransaction, pool };

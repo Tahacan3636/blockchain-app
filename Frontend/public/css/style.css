@@ -1,0 +1,224 @@
+/* =============================================================
+   css/style.css - Ortak Stiller
+   =============================================================
+   Tailwind ile yapilamayan ozel stiller (animasyonlar, aday kartlari,
+   zincir bloklari, il sonuc kartlari). Her iki sayfa da kullanir.
+   ============================================================= */
+
+:root {
+    --color-blue: #001e62;
+    --color-red: #ef4444;
+    --transition-fast: 0.3s ease;
+    --transition-medium: 0.4s ease;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Progress Bar Animation */
+.progress-animate {
+    animation: progressGrow 1.5s ease-out forwards;
+}
+
+@keyframes progressGrow {
+    from { width: 0%; }
+}
+
+/* Dashed Line */
+.dashed-line {
+    background-image: linear-gradient(to bottom, white 50%, transparent 50%);
+    background-size: 4px 12px;
+}
+
+/* Candidate Card */
+.candidate-card {
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.candidate-card:hover {
+    transform: scale(1.05);
+}
+
+.candidate-card.selected {
+    transform: scale(1.05);
+}
+
+.candidate-card.selected.blue-candidate {
+    box-shadow: 0 0 0 4px #001e62, 0 0 20px rgba(0, 30, 98, 0.5);
+}
+
+.candidate-card.selected.red-candidate {
+    box-shadow: 0 0 0 4px #c8102e, 0 0 20px rgba(200, 16, 46, 0.5);
+}
+
+/* Panel Transitions */
+.panel-transition {
+    transition: opacity var(--transition-medium), transform var(--transition-medium);
+}
+
+.panel-hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    visibility: hidden;
+    /* Gizli panel sayfa yuksekligine eklenmesin (alttaki bos alan) */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+}
+
+.panel-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+}
+
+/* Glassmorphism */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Chain Block Card */
+.chain-block {
+    min-width: 220px;
+    transition: all 150ms ease-out;
+}
+
+.chain-block:not(.selected):hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.chain-block.selected {
+    border-color: black;
+    background-color: rgb(250 250 250);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* CNN Election Style — Keskin Hatlar */
+.city-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+}
+
+.city-card-header {
+    padding: 16px 20px;
+    border-bottom: 2px solid #1f2937;
+}
+
+.candidate-row {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Önde olan — gradient arka plan, beyaz yazı, belirgin sol border */
+.candidate-row.lead-blue {
+    background: linear-gradient(135deg, #000c3d 0%, #001e62 100%);
+    border-left: 5px solid #000820;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+.candidate-row.lead-blue .cr-name,
+.candidate-row.lead-blue .cr-party,
+.candidate-row.lead-blue .cr-pct,
+.candidate-row.lead-blue .cr-votes,
+.candidate-row.lead-blue .cr-ahead { color: #fff; }
+
+.candidate-row.lead-red {
+    background: linear-gradient(135deg, #a00d24 0%, #c8102e 100%);
+    border-left: 5px solid #7f0a1c;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+.candidate-row.lead-red .cr-name,
+.candidate-row.lead-red .cr-party,
+.candidate-row.lead-red .cr-pct,
+.candidate-row.lead-red .cr-votes,
+.candidate-row.lead-red .cr-ahead { color: #fff; }
+
+/* Geride olan — çok soluk pastel, ince border, koyu yazı */
+.candidate-row.trail-blue {
+    background-color: #eef1f8;
+    border-left: 3px solid #6678a8;
+}
+.candidate-row.trail-blue .cr-name { color: #001e62; }
+.candidate-row.trail-blue .cr-party { color: #2a4080; }
+.candidate-row.trail-blue .cr-pct { color: #001e62; }
+.candidate-row.trail-blue .cr-votes { color: #001e62; }
+
+.candidate-row.trail-red {
+    background-color: #fef2f2;
+    border-left: 3px solid #fca5a5;
+}
+.candidate-row.trail-red .cr-name { color: #7f1d1d; }
+.candidate-row.trail-red .cr-party { color: #ef4444; }
+.candidate-row.trail-red .cr-pct { color: #991b1b; }
+.candidate-row.trail-red .cr-votes { color: #7f1d1d; }
+
+/* Beraberlik — nötr gri, koyu yazı */
+.candidate-row.tied {
+    background-color: #f3f4f6;
+    border-left: 3px solid #9ca3af;
+}
+
+.featured-city-card {
+    transition: all 0.2s ease-in-out;
+    cursor: default;
+}
+
+.featured-city-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-color: #9ca3af;
+}
+
+.city-fade-in {
+    animation: cityFadeIn 0.2s ease-out;
+}
+
+@keyframes cityFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Background Logo */
+.bg-logo {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Admin paneli giris animasyonu */
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Dil secimi (TR | EN) */
+.lang-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 9999px;
+    padding: 2px;
+    z-index: 10;
+}
+.lang-toggle button {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    transition: background 0.2s, color 0.2s;
+}
+.lang-toggle button.lang-active {
+    background: #fff;
+    color: #111827;
+}
