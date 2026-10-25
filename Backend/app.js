@@ -33,9 +33,13 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 
-// Render gibi bir proxy arkasinda gercek istemci IP'sini almak icin
-// (hiz sinirlamasi IP'ye gore calisir)
-app.set('trust proxy', 1);
+// Hiz sinirlamasi IP'ye gore calisir. Render gibi bir proxy arkasinda gercek
+// istemci IP'si X-Forwarded-For basligindadir; bu yuzden SADECE TRUST_PROXY
+// verildiginde bu basliga guvenilir. Dogrudan erisimde guvenilseydi, istemci
+// sahte bir baslik gondererek hiz sinirlamasini atlatabilirdi.
+if (config.trustProxy > 0) {
+    app.set('trust proxy', config.trustProxy);
+}
 
 // Lokal gelistirmede frontend'i de bu sunucu sunar:
 // http://localhost:3000 -> Frontend/public/index.html

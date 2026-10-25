@@ -40,6 +40,10 @@ describe('Kimlik dogrulama ve yetki', () => {
         assert.equal(res.status, 403);
     });
 
+    test('TRUST_PROXY verilmedikce X-Forwarded-For basligina guvenilmez (hiz sinirlamasi atlatilamaz)', () => {
+        assert.equal(Boolean(h.getApp().get('trust proxy')), false);
+    });
+
     test('olmayan endpoint 404 doner', async () => {
         const res = await h.request(h.getApp()).get('/api/yok');
         assert.equal(res.status, 404);

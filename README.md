@@ -3,7 +3,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-61%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-62%20passing-brightgreen)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A blockchain-based student election system developed as a graduation project. Every vote is stored as a block in a SHA-256 hash chain, so any later change to a vote is detected. Voters authenticate with a one-time voting code, their identity is hidden with HMAC, and every voter can verify that their vote is on the chain with a transaction receipt.
@@ -100,7 +100,7 @@ Admin login: hold the **VOTE** button in the navbar for 3 seconds. Default crede
 
 ```bash
 cd Backend
-npm test          # 61 tests: unit + integration (uses a separate test database)
+npm test          # 62 tests: unit + integration (uses a separate test database)
 npm run test:unit # unit tests only, no database needed
 ```
 
@@ -157,7 +157,7 @@ npm run test:unit # unit tests only, no database needed
 
 ### Backend → Render
 - **Root Directory:** `Backend` · **Build:** `npm install` · **Start:** `node server.js`
-- Environment variables: `DATABASE_URL`, `JWT_SECRET`, `VOTER_HASH_SECRET`, `ADMIN_PASSWORD`, `FRONTEND_URL`
+- Environment variables: `DATABASE_URL`, `JWT_SECRET`, `VOTER_HASH_SECRET`, `ADMIN_PASSWORD`, `FRONTEND_URL`, `TRUST_PROXY=1`
 
 ### Frontend → Netlify
 - **Publish directory:** `Frontend/public` (no build step)

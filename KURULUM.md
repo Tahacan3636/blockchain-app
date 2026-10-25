@@ -65,7 +65,7 @@ Ana sayfadaki **Blockchain Durumu** birkaç saniye içinde "Zincir bozuk – Blo
 
 ---
 
-## Otomatik testler (61 test)
+## Otomatik testler (62 test)
 
 ```
 cd Backend

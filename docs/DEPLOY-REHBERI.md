@@ -110,6 +110,7 @@ Render Dashboard -> **Environment** sekmesinde su degiskenler tanimlandi:
 | `DATABASE_URL` | `postgresql://...` (Render'dan kopyalanan) | Veritabani baglanti adresi |
 | `JWT_SECRET` | Guclu bir rastgele string | Token imzalama anahtari |
 | `VOTER_HASH_SECRET` | Ikinci guclu rastgele string (min 32 karakter) | Ogrenci no ve oy kodlarini HMAC ile hashleme anahtari |
+| `TRUST_PROXY` | `1` | Render proxy arkasinda gercek istemci IP si (hiz sinirlamasi icin) |
 | `ADMIN_PASSWORD` | `admin123` (veya istenen sifre) | Admin giris sifresi |
 | `FRONTEND_URL` | Netlify URL (sonra eklenir) | CORS icin frontend adresi |
 

@@ -20,6 +20,9 @@ const config = {
     port: parseInt(process.env.PORT || '3000', 10),
     frontendUrl: process.env.FRONTEND_URL || '*',
 
+    // Uygulamanin onunde kac proxy var (Render: 1). Dogrudan erisimde 0.
+    trustProxy: parseInt(process.env.TRUST_PROXY || '0', 10),
+
     // JWT: admin oturum token'larini imzalamak icin
     jwtSecret: requireSecret('JWT_SECRET'),
     jwtExpiresIn: '24h',
