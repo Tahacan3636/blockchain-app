@@ -148,9 +148,10 @@ async function verifyChain() {
 }
 
 // ---------- Makbuz sorgulama ----------
-// Secmen txId ile oyunun zincirde oldugunu dogrular.
-// Kime oy verildigi bilerek DONDURULMEZ: aksi halde makbuz,
-// oy satin alan birine "kanit" olarak gosterilebilirdi.
+// Secmen txId ile oyunun zincirde oldugunu dogrular; cevapta aday yer almaz.
+// SINIRLILIK: zincir herkese acik oldugu icin txId'yi bilen biri zincirde
+// ilgili blogu bulup adayi gorebilir. Yani sistem "makbuzsuz" (receipt-free)
+// degildir; bunun icin oylarin sifreli tutulmasi gerekir (bkz. rapor Bolum 6).
 async function findReceipt(txId) {
     const result = await db.query(
         `SELECT block_index, timestamp, hash FROM blocks WHERE data->>'txId' = $1`,

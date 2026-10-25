@@ -323,8 +323,7 @@
         },
 
         // Makbuz dogrulama: sunucuya "bu txId zincirde mi?" diye sorar.
-        // Kime oy verildigi bilerek gosterilmez (makbuz, oy satin alan
-        // birine kanit olarak kullanilamasin diye).
+        // Cevapta aday gosterilmez (sinirliliklar icin chainService.findReceipt).
         async queryTxId() {
             const resultEl = Utils.$('txQueryResult');
             const txId = Utils.$('txQueryInput').value.trim();

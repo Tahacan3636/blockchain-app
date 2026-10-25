@@ -65,7 +65,7 @@ A blockchain-based student election system developed as a graduation project. Ev
 4. Because the previous hash is part of each block's hash, changing one block invalidates every link after it.
 5. Verification recalculates all hashes, checks the links, rejects duplicate voters and compares the vote count with the number of voters marked as having voted.
 
-**Scope note:** the chain is stored in one PostgreSQL database (a *tamper-evident ledger*), not on a distributed peer-to-peer network. It detects modification but cannot prevent an attacker with full database and secret access from rebuilding the chain. Distributing the chain head (anchoring) or multiple nodes are listed as future work.
+**Scope note:** the chain is stored in one PostgreSQL database (a *tamper-evident ledger*), not on a distributed peer-to-peer network. It detects modification but cannot prevent an attacker with full database and secret access from rebuilding the chain. Distributing the chain head (anchoring) or multiple nodes are listed as future work. Votes are stored unencrypted, so the system is not receipt-free: a voter who shares their TxID lets others find their block on the public chain and see the vote. Encrypted, homomorphically tallied ballots are listed as future work.
 
 ---
 
