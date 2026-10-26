@@ -70,8 +70,9 @@
         renderStats(s) {
             $('statTotalVotes').textContent = num(s.totalVotes);
             $('statAllowedVoters').textContent = num(s.allowedVoters);
+            const pct = Math.round((s.totalVotes / s.allowedVoters) * 100);
             $('statTurnout').textContent = s.allowedVoters > 0
-                ? '%' + Math.round((s.totalVotes / s.allowedVoters) * 100)
+                ? (I18n.getLang() === 'tr' ? '%' + pct : pct + '%')
                 : '—';
             this.renderCandidateBars(s.votesPerCandidate, s.totalVotes);
         },

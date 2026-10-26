@@ -363,5 +363,26 @@ const I18n = (function () {
         apply();
     });
 
-    return { t, locale, apply, setLang, onChange, getLang: () => lang };
+    // Zincir dogrulama sebebi backend'den Turkce gelir; Ingilizce arayuzde cevrilir.
+    const REASONS_EN = [
+        [/^Blockchain bos - hic blok yok$/, 'Blockchain is empty - no blocks'],
+        [/^Genesis blok gecersiz$/, 'Invalid genesis block'],
+        [/^Genesis blok hash uyumsuzlugu$/, 'Genesis block hash mismatch'],
+        [/^Blok (\d+): index hatasi \(beklenen: (\d+), bulunan: (\d+)\)$/, 'Block $1: index error (expected: $2, found: $3)'],
+        [/^Blok (\d+): previousHash uyumsuzlugu$/, 'Block $1: previousHash mismatch'],
+        [/^Blok (\d+): hash uyumsuzlugu \(icerik degistirilmis olabilir\)$/, 'Block $1: hash mismatch (content may have been modified)'],
+        [/^Blok (\d+): ayni secmen ikinci kez oy kullanmis$/, 'Block $1: the same voter voted a second time'],
+        [/^Kayit uyumsuzlugu: (\d+) secmen oy kullanmis gorunuyor ama zincirde (\d+) oy var \(blok silinmis olabilir\)$/,
+            'Record mismatch: $1 voters are marked as voted but the chain has $2 votes (a block may have been deleted)']
+    ];
+
+    function reason(r) {
+        if (!r || lang === 'tr') return r;
+        for (const [re, en] of REASONS_EN) {
+            if (re.test(r)) return r.replace(re, en);
+        }
+        return r;
+    }
+
+    return { t, reason, locale, apply, setLang, onChange, getLang: () => lang };
 })();

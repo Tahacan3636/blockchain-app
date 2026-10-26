@@ -228,7 +228,7 @@
                 iconEl.innerHTML = `<i data-lucide="${valid ? 'shield-check' : 'shield-alert'}" class="w-6 h-6"></i>`;
 
                 Utils.$('chainBlockCount').textContent = valid ? Utils.num(result.blockCount) : '—';
-                Utils.$('chainHeadHash').textContent = valid ? Utils.shortHash(result.headHash) : (result.reason || '—');
+                Utils.$('chainHeadHash').textContent = valid ? Utils.shortHash(result.headHash) : (I18n.reason(result.reason) || '—');
                 Utils.$('chainHeadHash').title = valid ? result.headHash : '';
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             } catch (err) {
@@ -267,7 +267,7 @@
 
                 statusEl.textContent = verifyData.valid
                     ? t('chain.valid', { n: chain.length, h: Utils.shortHash(verifyData.headHash) })
-                    : t('chain.invalid', { r: verifyData.reason });
+                    : t('chain.invalid', { r: I18n.reason(verifyData.reason) });
 
                 listEl.innerHTML = '';
                 chain.forEach((b, i) => {
