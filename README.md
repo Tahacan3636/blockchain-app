@@ -191,10 +191,9 @@ npm run test:unit # unit tests only, no database needed
 
 ---
 
-## Developers
+## Developer
 
 - **Muhammed Taha CAN**
-- **Furkan YILMAZ**
 
 ### Credits
 
